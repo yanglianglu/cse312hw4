@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8">
+ <title>My cats!</title>
+</head>
+<body>
+<label for="chat-name">Name: </label>
+<input id="chat-name" type="text" name="name">
+<br/>
+<label for="chat-comment">Comment: </label>
+<input id="chat-comment" type="text" name="comment">
+
+<button onclick="sendMessage()">Chat</button>
+
+<br/>
+<br/>
+<label for="file-input">Upload </label><input type="file" id="file-input">
+<br/>
+
+<label for="image-button">Submit </label><button id ='image-button' onclick="sendFile()">Send</button>
+<div id = "image"></div>
+
+
+<div id="chat"></div>
+</div>
+<script>
+socket = new WebSocket('ws://' + window.location.host + '/websocket');
+// Call the addMessage function whenever data is received from the server over the WebSocket
+socket.onmessage = addMessage;
+
+// Allow users to send messages by pressing enter instead of clicking the Send button
+document.addEventListener("keypress", function (event) {
+   if (event.code === "Enter") {
+       sendMessage();
+   }
+});
+
+// Read the name/comment the user is sending to chat and send it to the server over the WebSocket as a JSON string
+// Called whenever the user clicks the Send button or pressed enter
+function sendMessage() {
+   const chatName = document.getElementById("chat-name").value;
+   const chatBox = document.getElementById("chat-comment");
+   const comment = chatBox.value;
+   chatBox.value = "";
+   chatBox.focus();
+   if(comment !== "") {
+       socket.send(JSON.stringify({'username': chatName, 'comment': comment}));
+   }
+}
+
+
+function sendFile() {
+var input = document.querySelector('#file-input');
+var fileObject = input.files[0]
+var fileReader = new FileReader();
+fileReader.readAsDataURL(fileObject);
+fileReader.onload = function(e) {
+   var data = fileReader.result;
+   
+
+   socket.send(JSON.stringify({'image': data}));
+}
+
+console.log(fileObject)
+console.log(fileReader)
+
+for(var key in fileReader){
+   console.log(key)
+}
+
+}
+
+// Called when the server sends a new message over the WebSocket and renders that message so the user can read it
+function addMessage(message) {
+   try{
+   const chatMessage = JSON.parse(message.data);
+   let chat = document.getElementById('chat');
+   if('username' in chatMessage)
+   chat.innerHTML += "<b>" + chatMessage['username'] + "</b>: " + chatMessage["comment"] + "<br/>";
+   else if ('image' in chatMessage){
+   data = chatMessage['image']
+   console.log(data)
+   image = document.getElementById('image')
+   elem = new Image()
+   elem.src = data
+   image.appendChild(elem)
+   }
+   }catch(error){
+         chat.innerHTML += "<b>" + "image is unavailable, force disconnect server" + "<br/>";
+   }
+   
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+def open_file(file): #open file and read it as bytes, then return the [length of bytes,content in byte] 
+def handle_image(bytes_data): #return payload length of this frame to make a decision if there is more data comming
+def handle_websocket_header(bytes_data): receive frame and return [bytes data,binary payload_length, binary extend_payload_length]
+def create_websocket_format(payload_data, payload_len, extend_payload_len) return a websocket frame
+
+OBJ 1 : when client first connect server will append to client list, use following code to get base64 sha1 then send to client
+			accept_response = sec_websocket_key + GUID
+                        hash_accept_response = hashlib.sha1(accept_response)
+                        base64_accept_response = base64.b64encode(hash_accept_response.digest())
+OBJ 2 : 1.when receive frame pass it to handle-websocket to retrive payload_length, extend_payload_length, mask payload data with the mask key
+	return masked and escaped data, binary extend_payload_length with format 07b, and extend payload length 016b or 064b
+	2.use return value from step 1 to construct frame in create_websocket_format to return a sending frame
+
+OBJ 3 use mongo. store {payload_data,length,extend_length} after value return from handle_websocket_header
+      when client connect to server send everything in the db
+
+OBJ 4 construct docker compose, direct copy from lecture
+
+OBJ 5 send image data from js as text of dataurl, so it will follow same instruction as OBJ 2
+	1. some image can take more than 15 sec for processing
+	2. my code can not process an image frame when it contain start header of 111111110000000000000000000000
+	3. if sending image after a image with start header 111111110000000000000000000000 is sned, will require refresh
+		everytime when image is send to client because of OSError: [WinError 10038] An operation was attempted on something that is not a socket
+	4. I add #mycol.drop() in line 19, if this type of image is sent, will require to empty the database because error may occur when server
+	 trying to retrive this image from db
+//Add note : any image larger than 100kb will not able to send
+
+	
+
